@@ -17,11 +17,13 @@ Funktiot
 - sortByDueDate = järjestää tehtävät määräpäivän mukaan
 
 Compose-tilanhallinta
+
 Jetpack Compose käyttää tilaa (state) määrittämään, mitä käyttöliittymässä näytetään.
 Kun tila muuttuu, Compose suorittaa automaattisesti uudelleen vain ne funktiot, jotka käyttävät kyseistä tilaa.
 Tässä sovelluksessa käyttöliittymä päivittyy automaattisesti kun tehtäviä lisätään, poistetaan, suodatetaan tai järjestetään.
 
 Viewmodel>remember
+
 remember-muuttuja säilyttää tilan vain niin kauan kun Composable on muistissa.
 Se ei säily konfiguraatiomuutoksissa eikä erota käyttöliittymää sovelluslogiikasta.
 ViewModel säilyttää tilan koko ajan ja pitää sovelluslogiikan erillään UI-koodista, jolloin koodi on selkeämpää,
