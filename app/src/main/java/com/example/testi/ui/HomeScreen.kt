@@ -18,14 +18,14 @@ fun HomeScreen(
     val tasks by taskViewModel.tasks
     var newTaskTitle by remember { mutableStateOf("") }
 
-    Column(modifier = Modifier.padding(16.dp)) {
+    Column(modifier = Modifier.padding(32.dp)) {
 
         Text(
             text = "Tasks",
             style = MaterialTheme.typography.headlineMedium
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
 
         Row {
