@@ -10,13 +10,26 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.testi.domain.Task
 import com.example.testi.viewmodel.TaskViewModel
+import androidx.compose.runtime.collectAsState
+import androidx.compose.foundation.clickable
+import androidx.navigation.NavController
+import com.example.testi.ui.ROUTE_HOME
+import com.example.testi.ui.ROUTE_CALENDAR
+import com.example.testi.ui.ROUTE_SETTINGS
+
+
+
 
 @Composable
 fun HomeScreen(
-    taskViewModel: TaskViewModel = viewModel()
+    navController: NavController,
+    taskViewModel: TaskViewModel
 ) {
-    val tasks by taskViewModel.tasks
-    var newTaskTitle by remember { mutableStateOf("") }
+    val tasks by taskViewModel.tasks.collectAsState()
+    var selectedTask by remember { mutableStateOf<Task?>(null) }
+    var showAddDialog by remember { mutableStateOf(false) }
+
+
 
     Column(modifier = Modifier.padding(32.dp)) {
 
@@ -25,38 +38,22 @@ fun HomeScreen(
             style = MaterialTheme.typography.headlineMedium
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
-
-        Row {
-            TextField(
-                value = newTaskTitle,
-                onValueChange = { newTaskTitle = it },
-                modifier = Modifier.weight(1f),
-                placeholder = { Text("New task") }
-            )
-            Button(
-                onClick = {
-                    if (newTaskTitle.isNotBlank()) {
-                        taskViewModel.addTask(
-                            Task(
-                                id = tasks.size + 1,
-                                title = newTaskTitle,
-                                description = "",
-                                priority = 1,
-                                dueDate = "2026-01-30",
-                                done = false
-                            )
-                        )
-                        newTaskTitle = ""
-                    }
-                }
-            ) {
-                Text("Add")
+        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            Button(onClick = { navController.navigate(ROUTE_HOME) }) {
+                Text("Home")
+            }
+            Button(onClick = { navController.navigate(ROUTE_CALENDAR) }) {
+                Text("Calendar")
+            }
+            Button(onClick = { navController.navigate(ROUTE_SETTINGS) }) {
+                Text("Settings")
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(12.dp))
+
 
         var expanded by remember { mutableStateOf(false) }
 
@@ -69,6 +66,9 @@ fun HomeScreen(
             }
             Button(onClick = { taskViewModel.filterByDone(true) }) {
                 Text("Done")
+            }
+            Button(onClick = { showAddDialog = true }) {
+                Text("+")
             }
         }
 
@@ -102,22 +102,100 @@ fun HomeScreen(
                 TaskRow(
                     task = task,
                     onToggle = { taskViewModel.toggleDone(task.id) },
-                    onDelete = { taskViewModel.removeTask(task.id) }
+                    onDelete = { taskViewModel.removeTask(task.id) },
+                    onClick = { selectedTask = task }
                 )
             }
         }
+    }
+    selectedTask?.let { task ->
+        DetailScreen(
+            task = task,
+            onUpdate = { taskViewModel.updateTask(it) },
+            onDelete = { taskViewModel.removeTask(task.id) },
+            onDismiss = { selectedTask = null }
+        )
+    }
+    if (showAddDialog) {
+        var title by remember { mutableStateOf("") }
+        var description by remember { mutableStateOf("") }
+        var dueDate by remember { mutableStateOf("") }
+        var priority by remember { mutableStateOf("1")}
+
+        AlertDialog(
+            onDismissRequest = { showAddDialog = false },
+            confirmButton = {
+                Button(onClick = {
+                    if (title.isNotBlank()) {
+                        taskViewModel.addTask(
+                            Task(
+                                id = tasks.size + 1,
+                                title = title,
+                                description = description,
+                                priority = priority.toIntOrNull() ?: 1,
+                                dueDate = dueDate,
+                                done = false
+                            )
+                        )
+                        showAddDialog = false
+                    }
+                }) {
+                    Text("Save")
+                }
+            },
+            dismissButton = {
+                Button(onClick = { showAddDialog = false }) {
+                    Text("Cancel")
+                }
+            },
+            text = {
+                Column {
+                    TextField(
+                        value = title,
+                        onValueChange = { title = it },
+                        label = { Text("Title") }
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    TextField(
+                        value = description,
+                        onValueChange = { description = it },
+                        label = { Text("Description") }
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    TextField(
+                        value = dueDate,
+                        onValueChange = { dueDate = it },
+                        label = { Text("Due date (YYYY-MM-DD)") }
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    TextField(
+                        value = priority,
+                        onValueChange = { priority = it },
+                        label = { Text("Priority (1–5)") }
+                    )
+                }
+            }
+        )
     }
 }
 @Composable
 fun TaskRow(
     task: Task,
     onToggle: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
+            .padding(vertical = 4.dp)
+            .clickable { onClick()},
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Row {

@@ -1,14 +1,16 @@
 package com.example.testi.viewmodel
 
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import com.example.testi.domain.Task
 import com.example.testi.domain.mockTasks
 
 class TaskViewModel : ViewModel() {
 
-    private val allTasks = mutableStateOf<List<Task>>(emptyList())
-    var tasks = mutableStateOf<List<Task>>(emptyList())
+    private val allTasks = MutableStateFlow<List<Task>>(emptyList())
+    var tasks = MutableStateFlow<List<Task>>(emptyList())
         private set
 
     init {
@@ -41,11 +43,19 @@ class TaskViewModel : ViewModel() {
         tasks.value = allTasks.value
     }
 
-    fun sortByDueDate(){
+    fun sortByDueDate() {
         tasks.value = tasks.value.sortedBy { it.dueDate }
     }
 
-    fun sortByPriority(){
+    fun sortByPriority() {
         tasks.value = tasks.value.sortedBy { it.priority }
     }
+
+    fun updateTask(updatedTask: Task) {
+        allTasks.value = allTasks.value.map {
+            if (it.id == updatedTask.id) updatedTask else it
+        }
+        tasks.value = allTasks.value
+    }
 }
+
